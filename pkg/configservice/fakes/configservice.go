@@ -5,10 +5,10 @@ import (
 	"sync"
 
 	"github.com/jkevlin/vault-cli/pkg/config"
-	"github.com/jkevlin/vault-cli/pkg/configstore"
+	"github.com/jkevlin/vault-cli/pkg/configservice"
 )
 
-type FakeStore struct {
+type FakeConfigService struct {
 	ReadStub        func(string) (*config.Config, error)
 	readMutex       sync.RWMutex
 	readArgsForCall []struct {
@@ -38,7 +38,7 @@ type FakeStore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStore) Read(arg1 string) (*config.Config, error) {
+func (fake *FakeConfigService) Read(arg1 string) (*config.Config, error) {
 	fake.readMutex.Lock()
 	ret, specificReturn := fake.readReturnsOnCall[len(fake.readArgsForCall)]
 	fake.readArgsForCall = append(fake.readArgsForCall, struct {
@@ -56,26 +56,26 @@ func (fake *FakeStore) Read(arg1 string) (*config.Config, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeStore) ReadCallCount() int {
+func (fake *FakeConfigService) ReadCallCount() int {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
 	return len(fake.readArgsForCall)
 }
 
-func (fake *FakeStore) ReadCalls(stub func(string) (*config.Config, error)) {
+func (fake *FakeConfigService) ReadCalls(stub func(string) (*config.Config, error)) {
 	fake.readMutex.Lock()
 	defer fake.readMutex.Unlock()
 	fake.ReadStub = stub
 }
 
-func (fake *FakeStore) ReadArgsForCall(i int) string {
+func (fake *FakeConfigService) ReadArgsForCall(i int) string {
 	fake.readMutex.RLock()
 	defer fake.readMutex.RUnlock()
 	argsForCall := fake.readArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeStore) ReadReturns(result1 *config.Config, result2 error) {
+func (fake *FakeConfigService) ReadReturns(result1 *config.Config, result2 error) {
 	fake.readMutex.Lock()
 	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
@@ -85,7 +85,7 @@ func (fake *FakeStore) ReadReturns(result1 *config.Config, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeStore) ReadReturnsOnCall(i int, result1 *config.Config, result2 error) {
+func (fake *FakeConfigService) ReadReturnsOnCall(i int, result1 *config.Config, result2 error) {
 	fake.readMutex.Lock()
 	defer fake.readMutex.Unlock()
 	fake.ReadStub = nil
@@ -101,7 +101,7 @@ func (fake *FakeStore) ReadReturnsOnCall(i int, result1 *config.Config, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeStore) Write(arg1 string, arg2 *config.Config) error {
+func (fake *FakeConfigService) Write(arg1 string, arg2 *config.Config) error {
 	fake.writeMutex.Lock()
 	ret, specificReturn := fake.writeReturnsOnCall[len(fake.writeArgsForCall)]
 	fake.writeArgsForCall = append(fake.writeArgsForCall, struct {
@@ -120,26 +120,26 @@ func (fake *FakeStore) Write(arg1 string, arg2 *config.Config) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeStore) WriteCallCount() int {
+func (fake *FakeConfigService) WriteCallCount() int {
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
 	return len(fake.writeArgsForCall)
 }
 
-func (fake *FakeStore) WriteCalls(stub func(string, *config.Config) error) {
+func (fake *FakeConfigService) WriteCalls(stub func(string, *config.Config) error) {
 	fake.writeMutex.Lock()
 	defer fake.writeMutex.Unlock()
 	fake.WriteStub = stub
 }
 
-func (fake *FakeStore) WriteArgsForCall(i int) (string, *config.Config) {
+func (fake *FakeConfigService) WriteArgsForCall(i int) (string, *config.Config) {
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
 	argsForCall := fake.writeArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStore) WriteReturns(result1 error) {
+func (fake *FakeConfigService) WriteReturns(result1 error) {
 	fake.writeMutex.Lock()
 	defer fake.writeMutex.Unlock()
 	fake.WriteStub = nil
@@ -148,7 +148,7 @@ func (fake *FakeStore) WriteReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStore) WriteReturnsOnCall(i int, result1 error) {
+func (fake *FakeConfigService) WriteReturnsOnCall(i int, result1 error) {
 	fake.writeMutex.Lock()
 	defer fake.writeMutex.Unlock()
 	fake.WriteStub = nil
@@ -162,7 +162,7 @@ func (fake *FakeStore) WriteReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStore) Invocations() map[string][][]interface{} {
+func (fake *FakeConfigService) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.readMutex.RLock()
@@ -176,7 +176,7 @@ func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeStore) recordInvocation(key string, args []interface{}) {
+func (fake *FakeConfigService) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -188,4 +188,4 @@ func (fake *FakeStore) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ configstore.Store = new(FakeStore)
+var _ configservice.ConfigService = new(FakeConfigService)

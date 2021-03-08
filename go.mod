@@ -3,6 +3,7 @@ module github.com/jkevlin/vault-cli
 go 1.15
 
 require (
+	github.com/hashicorp/vault/api v1.0.4
 	github.com/mattn/go-colorable v0.0.9
 	github.com/mitchellh/cli v1.1.2
 	github.com/mitchellh/go-homedir v1.1.0

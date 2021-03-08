@@ -10,9 +10,11 @@ import (
 	"text/tabwriter"
 
 	"github.com/jkevlin/vault-cli/command"
+	"github.com/jkevlin/vault-cli/pkg/configservice/configfile"
 	"github.com/jkevlin/vault-cli/version"
 	"github.com/mattn/go-colorable"
 	"github.com/mitchellh/cli"
+	"github.com/mitchellh/go-homedir"
 	"github.com/sean-/seed"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -43,6 +45,12 @@ var (
 	commonCommands = []string{
 		"put",
 	}
+)
+
+const (
+	envVaultCLIConfigDir  = "VAULTCLICONFIG"
+	configDefaultDir      = ".vaultcli"
+	configDefaultFileName = "config.yaml"
 )
 
 func init() {
@@ -94,6 +102,38 @@ func RunCustom(args []string) int {
 		}
 	}
 
+	// Inject config storage object.
+	cfgservice := configfile.NewConfigFileService()
+	var path string
+	if path = os.Getenv(envVaultCLIConfigDir); path == "" {
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		configPath := home + "/" + configDefaultDir
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			err = os.Mkdir(configPath, 0755)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+		path = configPath + "/" + configDefaultFileName
+	}
+	cfg, err := cfgservice.Read(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting config: %s\n", err.Error())
+		return 1
+	}
+	metaPtr.Config = cfg
+
+	// Inject secret storage object
+	// TODO
+
+	//secretsvc := vault.NewVaultService()
+
 	commands := command.Commands(metaPtr, agentUi)
 	cli := &cli.CLI{
 		Name:                       "vaultcli",
@@ -107,13 +147,6 @@ func RunCustom(args []string) int {
 			cli.BasicHelpFunc("vaultcli"),
 		),
 		HelpWriter: os.Stdout,
-	}
-
-	path := ""
-	err := command.AppInit(path)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error executing CLI: %s\n", err.Error())
-		return 1
 	}
 
 	exitCode, err := cli.Run()

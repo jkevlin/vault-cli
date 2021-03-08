@@ -3,6 +3,8 @@ package command
 import (
 	"strings"
 
+	"github.com/jkevlin/vault-cli/pkg/config"
+	"github.com/jkevlin/vault-cli/pkg/secretservice"
 	"github.com/mitchellh/cli"
 	"github.com/posener/complete"
 )
@@ -22,27 +24,31 @@ const (
 type Meta struct {
 	Ui cli.Ui
 
-	// These are set by the command line flags.
-	flagAddress string
+	Config *config.Config
 
-	// Whether to not-colorize output
-	noColor bool
+	SecretService *secretservice.SecretService
 
-	// The region to send API requests
-	region string
+	// // These are set by the command line flags.
+	// flagAddress string
 
-	// namespace to send API requests
-	namespace string
+	// // Whether to not-colorize output
+	// noColor bool
 
-	// token is used for ACLs to access privileged information
-	token string
+	// // The region to send API requests
+	// region string
 
-	caCert        string
-	caPath        string
-	clientCert    string
-	clientKey     string
-	tlsServerName string
-	insecure      bool
+	// // namespace to send API requests
+	// namespace string
+
+	// // token is used for ACLs to access privileged information
+	// token string
+
+	// caCert        string
+	// caPath        string
+	// clientCert    string
+	// clientKey     string
+	// tlsServerName string
+	// insecure      bool
 }
 
 // AutocompleteFlags returns a set of flag completions for the given flag set.
