@@ -1,10 +1,19 @@
 package vault
 
 import (
+	"bytes"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/jkevlin/vault-cli/pkg/secretservice"
+	"github.com/mitchellh/go-homedir"
 )
 
 type vaultservice struct {
@@ -12,8 +21,13 @@ type vaultservice struct {
 }
 
 // NewVaultService should return a pointer to a vaultservice client
-func NewVaultService(c *api.Client) secretservice.SecretService {
-	return &vaultservice{Client: c}
+func NewVaultService() secretservice.SecretService {
+	return &vaultservice{}
+}
+
+// SetClient should return a pointer to a vaultservice client
+func (vs *vaultservice) SetClient(c *api.Client) {
+	vs.Client = c
 }
 
 // Delete is to satisfy a lint error for this interface
@@ -104,4 +118,191 @@ func kvPreflightVersionRequest(client *api.Client, path string) (string, int, er
 	}
 
 	return mountPath, 1, nil
+}
+
+// UserPassLogin will get a token from vault
+func (vs *vaultservice) UserPassLogin(namespace, authurl, endpoint, username, password, cacert string, insecureSkipVerify bool) (*api.Secret, error) {
+	client := &http.Client{}
+	if cacert != "" {
+		caCert, err := readFile(cacert)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: insecureSkipVerify,
+			},
+		}
+	}
+	values := map[string]string{"password": password}
+
+	jsonValue, _ := json.Marshal(values)
+	nsPath := ""
+	if namespace != "" {
+		nsPath = namespace + "/"
+	}
+	req, err := http.NewRequest("POST", authurl+"/v1/"+nsPath+"auth/"+endpoint+"/login/"+username, bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	jdata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	secret := api.Secret{}
+	err = json.Unmarshal([]byte(jdata), &secret)
+	if err != nil {
+		return nil, err
+	}
+	return &secret, nil
+}
+
+// CertLogin will get a token from vault
+func (vs *vaultservice) CertLogin(namespace, url, endpoint, cert, key, cacert string, insecureSkipVerify bool) (*api.Secret, error) {
+	cert = expandHomePath(cert)
+	key = expandHomePath(key)
+	clientCertKey, err := tls.LoadX509KeyPair(cert, key)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	if cacert != "" {
+		caCert, err := readFile(cacert)
+		if err != nil {
+			return nil, err
+		}
+		if len(caCert) == 0 {
+			return nil, errors.New("could not read caCert")
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs:            caCertPool,
+					Certificates:       []tls.Certificate{clientCertKey},
+					InsecureSkipVerify: insecureSkipVerify,
+				},
+			},
+		}
+	} else {
+		client = &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					Certificates:       []tls.Certificate{clientCertKey},
+					InsecureSkipVerify: insecureSkipVerify,
+				},
+			},
+		}
+	}
+
+	req, err := http.NewRequest("POST", url+"/v1/auth/"+endpoint+"/login", nil)
+	if err != nil {
+		return nil, err
+	}
+	if namespace != "" {
+		req.Header.Add("X-Vault-Namespace", namespace)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	jdata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	secret := api.Secret{}
+	err = json.Unmarshal([]byte(jdata), &secret)
+	if err != nil {
+		return nil, err
+	}
+	if secret.Auth == nil || secret.Auth.ClientToken == "" {
+		return nil, fmt.Errorf("could not get token: body:%v", string(jdata))
+	}
+	return &secret, nil
+}
+
+// AppRoleLogin will get a token from vault
+func (vs *vaultservice) AppRoleLogin(namespace, authurl, endpoint, roleID, secretID, cacert string, insecureSkipVerify bool) (*api.Secret, error) {
+	client := &http.Client{}
+	if cacert != "" {
+		caCert, err := readFile(cacert)
+		if err != nil {
+			log.Fatal(err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		client.Transport = &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: insecureSkipVerify,
+			},
+		}
+	}
+	values := map[string]string{"role_id": roleID, "secret_id": secretID}
+
+	jsonValue, _ := json.Marshal(values)
+	nsPath := ""
+	if namespace != "" {
+		nsPath = namespace + "/"
+	}
+	req, err := http.NewRequest("POST", authurl+"/v1/"+nsPath+"auth/"+endpoint+"/login", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	jdata, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	secret := api.Secret{}
+	err = json.Unmarshal([]byte(jdata), &secret)
+	if err != nil {
+		return nil, err
+	}
+	return &secret, nil
+}
+
+// getHomeDir returns the home dir
+func getHomeDir() (string, error) {
+	home, err := homedir.Dir()
+	if err != nil {
+		return "", fmt.Errorf(err.Error())
+	}
+	return home, nil
+}
+
+// expandHomePath translate home dir
+func expandHomePath(path string) string {
+	if path != "" && path[:1] == "~" {
+		home, err := getHomeDir()
+		if err != nil {
+			return ""
+		}
+		return home + path[1:]
+	}
+	return path
+}
+
+// readFile expands home dir
+func readFile(filename string) ([]byte, error) {
+	fn := expandHomePath(filename)
+	return ioutil.ReadFile(fn)
 }

@@ -12,7 +12,7 @@ type PutVaultNamespaceCommand struct {
 
 func (c *PutVaultNamespaceCommand) Help() string {
 	helpText := `
-Usage: nomad put vaultnamespace [options]
+Usage: vault-cli put vaultnamespace [options]
   Bootstrap is used to bootstrap the ACL system and get an initial token.
 General Options:
   ` + generalOptionsUsage(usageOptsDefault|usageOptsNoNamespace) + `
@@ -36,5 +36,10 @@ func (c *PutVaultNamespaceCommand) Synopsis() string {
 func (c *PutVaultNamespaceCommand) Name() string { return "acl bootstrap" }
 
 func (c *PutVaultNamespaceCommand) Run(args []string) int {
+	var currentContext string
+
+	flags := c.Meta.FlagSet(c.Name(), FlagSetClient)
+	flags.Usage = func() { c.Ui.Output(c.Help()) }
+	flags.StringVar(&currentContext, "name", "", "")
 	return 0
 }

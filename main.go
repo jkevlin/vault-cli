@@ -129,10 +129,19 @@ func RunCustom(args []string) int {
 	}
 	metaPtr.Config = cfg
 
-	// Inject secret storage object
-	// TODO
+	// Inject vault secret service object into meta and get a session
 
-	//secretsvc := vault.NewVaultService()
+	secretsvc, err := cfg.GetServiceFromContext(path, "local", "nextgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting service from config: %s\n", err.Error())
+		return 1
+	}
+	_, err = cfg.GetSession(secretsvc, path, "local", true)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting session: %s\n", err.Error())
+		return 1
+	}
+	metaPtr.SecretService = &secretsvc
 
 	commands := command.Commands(metaPtr, agentUi)
 	cli := &cli.CLI{

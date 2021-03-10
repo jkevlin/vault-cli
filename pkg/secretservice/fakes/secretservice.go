@@ -9,6 +9,44 @@ import (
 )
 
 type FakeSecretService struct {
+	AppRoleLoginStub        func(string, string, string, string, string, string, bool) (*api.Secret, error)
+	appRoleLoginMutex       sync.RWMutex
+	appRoleLoginArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}
+	appRoleLoginReturns struct {
+		result1 *api.Secret
+		result2 error
+	}
+	appRoleLoginReturnsOnCall map[int]struct {
+		result1 *api.Secret
+		result2 error
+	}
+	CertLoginStub        func(string, string, string, string, string, string, bool) (*api.Secret, error)
+	certLoginMutex       sync.RWMutex
+	certLoginArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}
+	certLoginReturns struct {
+		result1 *api.Secret
+		result2 error
+	}
+	certLoginReturnsOnCall map[int]struct {
+		result1 *api.Secret
+		result2 error
+	}
 	DeleteStub        func(string) (*api.Secret, error)
 	deleteMutex       sync.RWMutex
 	deleteArgsForCall []struct {
@@ -77,6 +115,30 @@ type FakeSecretService struct {
 		result1 *api.Secret
 		result2 error
 	}
+	SetClientStub        func(*api.Client)
+	setClientMutex       sync.RWMutex
+	setClientArgsForCall []struct {
+		arg1 *api.Client
+	}
+	UserPassLoginStub        func(string, string, string, string, string, string, bool) (*api.Secret, error)
+	userPassLoginMutex       sync.RWMutex
+	userPassLoginArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}
+	userPassLoginReturns struct {
+		result1 *api.Secret
+		result2 error
+	}
+	userPassLoginReturnsOnCall map[int]struct {
+		result1 *api.Secret
+		result2 error
+	}
 	WriteStub        func(string, map[string]interface{}) (*api.Secret, error)
 	writeMutex       sync.RWMutex
 	writeArgsForCall []struct {
@@ -93,6 +155,144 @@ type FakeSecretService struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeSecretService) AppRoleLogin(arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string, arg7 bool) (*api.Secret, error) {
+	fake.appRoleLoginMutex.Lock()
+	ret, specificReturn := fake.appRoleLoginReturnsOnCall[len(fake.appRoleLoginArgsForCall)]
+	fake.appRoleLoginArgsForCall = append(fake.appRoleLoginArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("AppRoleLogin", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.appRoleLoginMutex.Unlock()
+	if fake.AppRoleLoginStub != nil {
+		return fake.AppRoleLoginStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.appRoleLoginReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeSecretService) AppRoleLoginCallCount() int {
+	fake.appRoleLoginMutex.RLock()
+	defer fake.appRoleLoginMutex.RUnlock()
+	return len(fake.appRoleLoginArgsForCall)
+}
+
+func (fake *FakeSecretService) AppRoleLoginCalls(stub func(string, string, string, string, string, string, bool) (*api.Secret, error)) {
+	fake.appRoleLoginMutex.Lock()
+	defer fake.appRoleLoginMutex.Unlock()
+	fake.AppRoleLoginStub = stub
+}
+
+func (fake *FakeSecretService) AppRoleLoginArgsForCall(i int) (string, string, string, string, string, string, bool) {
+	fake.appRoleLoginMutex.RLock()
+	defer fake.appRoleLoginMutex.RUnlock()
+	argsForCall := fake.appRoleLoginArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+}
+
+func (fake *FakeSecretService) AppRoleLoginReturns(result1 *api.Secret, result2 error) {
+	fake.appRoleLoginMutex.Lock()
+	defer fake.appRoleLoginMutex.Unlock()
+	fake.AppRoleLoginStub = nil
+	fake.appRoleLoginReturns = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeSecretService) AppRoleLoginReturnsOnCall(i int, result1 *api.Secret, result2 error) {
+	fake.appRoleLoginMutex.Lock()
+	defer fake.appRoleLoginMutex.Unlock()
+	fake.AppRoleLoginStub = nil
+	if fake.appRoleLoginReturnsOnCall == nil {
+		fake.appRoleLoginReturnsOnCall = make(map[int]struct {
+			result1 *api.Secret
+			result2 error
+		})
+	}
+	fake.appRoleLoginReturnsOnCall[i] = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeSecretService) CertLogin(arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string, arg7 bool) (*api.Secret, error) {
+	fake.certLoginMutex.Lock()
+	ret, specificReturn := fake.certLoginReturnsOnCall[len(fake.certLoginArgsForCall)]
+	fake.certLoginArgsForCall = append(fake.certLoginArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("CertLogin", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.certLoginMutex.Unlock()
+	if fake.CertLoginStub != nil {
+		return fake.CertLoginStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.certLoginReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeSecretService) CertLoginCallCount() int {
+	fake.certLoginMutex.RLock()
+	defer fake.certLoginMutex.RUnlock()
+	return len(fake.certLoginArgsForCall)
+}
+
+func (fake *FakeSecretService) CertLoginCalls(stub func(string, string, string, string, string, string, bool) (*api.Secret, error)) {
+	fake.certLoginMutex.Lock()
+	defer fake.certLoginMutex.Unlock()
+	fake.CertLoginStub = stub
+}
+
+func (fake *FakeSecretService) CertLoginArgsForCall(i int) (string, string, string, string, string, string, bool) {
+	fake.certLoginMutex.RLock()
+	defer fake.certLoginMutex.RUnlock()
+	argsForCall := fake.certLoginArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+}
+
+func (fake *FakeSecretService) CertLoginReturns(result1 *api.Secret, result2 error) {
+	fake.certLoginMutex.Lock()
+	defer fake.certLoginMutex.Unlock()
+	fake.CertLoginStub = nil
+	fake.certLoginReturns = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeSecretService) CertLoginReturnsOnCall(i int, result1 *api.Secret, result2 error) {
+	fake.certLoginMutex.Lock()
+	defer fake.certLoginMutex.Unlock()
+	fake.CertLoginStub = nil
+	if fake.certLoginReturnsOnCall == nil {
+		fake.certLoginReturnsOnCall = make(map[int]struct {
+			result1 *api.Secret
+			result2 error
+		})
+	}
+	fake.certLoginReturnsOnCall[i] = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeSecretService) Delete(arg1 string) (*api.Secret, error) {
@@ -414,6 +614,106 @@ func (fake *FakeSecretService) ReadWithDataReturnsOnCall(i int, result1 *api.Sec
 	}{result1, result2}
 }
 
+func (fake *FakeSecretService) SetClient(arg1 *api.Client) {
+	fake.setClientMutex.Lock()
+	fake.setClientArgsForCall = append(fake.setClientArgsForCall, struct {
+		arg1 *api.Client
+	}{arg1})
+	fake.recordInvocation("SetClient", []interface{}{arg1})
+	fake.setClientMutex.Unlock()
+	if fake.SetClientStub != nil {
+		fake.SetClientStub(arg1)
+	}
+}
+
+func (fake *FakeSecretService) SetClientCallCount() int {
+	fake.setClientMutex.RLock()
+	defer fake.setClientMutex.RUnlock()
+	return len(fake.setClientArgsForCall)
+}
+
+func (fake *FakeSecretService) SetClientCalls(stub func(*api.Client)) {
+	fake.setClientMutex.Lock()
+	defer fake.setClientMutex.Unlock()
+	fake.SetClientStub = stub
+}
+
+func (fake *FakeSecretService) SetClientArgsForCall(i int) *api.Client {
+	fake.setClientMutex.RLock()
+	defer fake.setClientMutex.RUnlock()
+	argsForCall := fake.setClientArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeSecretService) UserPassLogin(arg1 string, arg2 string, arg3 string, arg4 string, arg5 string, arg6 string, arg7 bool) (*api.Secret, error) {
+	fake.userPassLoginMutex.Lock()
+	ret, specificReturn := fake.userPassLoginReturnsOnCall[len(fake.userPassLoginArgsForCall)]
+	fake.userPassLoginArgsForCall = append(fake.userPassLoginArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 string
+		arg5 string
+		arg6 string
+		arg7 bool
+	}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.recordInvocation("UserPassLogin", []interface{}{arg1, arg2, arg3, arg4, arg5, arg6, arg7})
+	fake.userPassLoginMutex.Unlock()
+	if fake.UserPassLoginStub != nil {
+		return fake.UserPassLoginStub(arg1, arg2, arg3, arg4, arg5, arg6, arg7)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.userPassLoginReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeSecretService) UserPassLoginCallCount() int {
+	fake.userPassLoginMutex.RLock()
+	defer fake.userPassLoginMutex.RUnlock()
+	return len(fake.userPassLoginArgsForCall)
+}
+
+func (fake *FakeSecretService) UserPassLoginCalls(stub func(string, string, string, string, string, string, bool) (*api.Secret, error)) {
+	fake.userPassLoginMutex.Lock()
+	defer fake.userPassLoginMutex.Unlock()
+	fake.UserPassLoginStub = stub
+}
+
+func (fake *FakeSecretService) UserPassLoginArgsForCall(i int) (string, string, string, string, string, string, bool) {
+	fake.userPassLoginMutex.RLock()
+	defer fake.userPassLoginMutex.RUnlock()
+	argsForCall := fake.userPassLoginArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5, argsForCall.arg6, argsForCall.arg7
+}
+
+func (fake *FakeSecretService) UserPassLoginReturns(result1 *api.Secret, result2 error) {
+	fake.userPassLoginMutex.Lock()
+	defer fake.userPassLoginMutex.Unlock()
+	fake.UserPassLoginStub = nil
+	fake.userPassLoginReturns = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeSecretService) UserPassLoginReturnsOnCall(i int, result1 *api.Secret, result2 error) {
+	fake.userPassLoginMutex.Lock()
+	defer fake.userPassLoginMutex.Unlock()
+	fake.UserPassLoginStub = nil
+	if fake.userPassLoginReturnsOnCall == nil {
+		fake.userPassLoginReturnsOnCall = make(map[int]struct {
+			result1 *api.Secret
+			result2 error
+		})
+	}
+	fake.userPassLoginReturnsOnCall[i] = struct {
+		result1 *api.Secret
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeSecretService) Write(arg1 string, arg2 map[string]interface{}) (*api.Secret, error) {
 	fake.writeMutex.Lock()
 	ret, specificReturn := fake.writeReturnsOnCall[len(fake.writeArgsForCall)]
@@ -481,6 +781,10 @@ func (fake *FakeSecretService) WriteReturnsOnCall(i int, result1 *api.Secret, re
 func (fake *FakeSecretService) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.appRoleLoginMutex.RLock()
+	defer fake.appRoleLoginMutex.RUnlock()
+	fake.certLoginMutex.RLock()
+	defer fake.certLoginMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
 	fake.isKVv2Mutex.RLock()
@@ -491,6 +795,10 @@ func (fake *FakeSecretService) Invocations() map[string][][]interface{} {
 	defer fake.readMutex.RUnlock()
 	fake.readWithDataMutex.RLock()
 	defer fake.readWithDataMutex.RUnlock()
+	fake.setClientMutex.RLock()
+	defer fake.setClientMutex.RUnlock()
+	fake.userPassLoginMutex.RLock()
+	defer fake.userPassLoginMutex.RUnlock()
 	fake.writeMutex.RLock()
 	defer fake.writeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

@@ -1,6 +1,7 @@
 package command
 
 import (
+	"flag"
 	"strings"
 
 	"github.com/jkevlin/vault-cli/pkg/config"
@@ -29,26 +30,33 @@ type Meta struct {
 	SecretService *secretservice.SecretService
 
 	// // These are set by the command line flags.
-	// flagAddress string
+	// context is the context name to use for this command
+	context string
+	// Whether to not-colorize output
+	noColor bool
 
-	// // Whether to not-colorize output
-	// noColor bool
+	// namespace to send API requests
+	namespace string
+}
 
-	// // The region to send API requests
-	// region string
+// FlagSet returns a FlagSet with the common flags that every
+// command implements. The exact behavior of FlagSet can be configured
+// using the flags as the second parameter, for example to disable
+// server settings on the commands that don't talk to a server.
+func (m *Meta) FlagSet(n string, fs FlagSetFlags) *flag.FlagSet {
+	f := flag.NewFlagSet(n, flag.ContinueOnError)
 
-	// // namespace to send API requests
-	// namespace string
+	// FlagSetClient is used to enable the settings for specifying
+	// client connectivity options.
+	if fs&FlagSetClient != 0 {
+		f.StringVar(&m.namespace, "namespace", "", "")
+		f.StringVar(&m.context, "context", "", "")
 
-	// // token is used for ACLs to access privileged information
-	// token string
+	}
 
-	// caCert        string
-	// caPath        string
-	// clientCert    string
-	// clientKey     string
-	// tlsServerName string
-	// insecure      bool
+	f.SetOutput(&uiErrorWriter{ui: m.Ui})
+
+	return f
 }
 
 // AutocompleteFlags returns a set of flag completions for the given flag set.
@@ -58,18 +66,18 @@ func (m *Meta) AutocompleteFlags(fs FlagSetFlags) complete.Flags {
 	}
 
 	return complete.Flags{
-		"-address": complete.PredictAnything,
-		"-region":  complete.PredictAnything,
+		"-kubecliconfig": complete.PredictAnything,
+		"-namespace":     complete.PredictAnything,
 		//"-namespace":       NamespacePredictor(m.Client, nil),
-		"-no-color":        complete.PredictNothing,
-		"-ca-cert":         complete.PredictFiles("*"),
-		"-ca-path":         complete.PredictDirs("*"),
-		"-client-cert":     complete.PredictFiles("*"),
-		"-client-key":      complete.PredictFiles("*"),
-		"-insecure":        complete.PredictNothing,
-		"-tls-server-name": complete.PredictNothing,
-		"-tls-skip-verify": complete.PredictNothing,
-		"-token":           complete.PredictAnything,
+		"-no-color": complete.PredictNothing,
+		// "-ca-cert":         complete.PredictFiles("*"),
+		// "-ca-path":         complete.PredictDirs("*"),
+		// "-client-cert":     complete.PredictFiles("*"),
+		// "-client-key":      complete.PredictFiles("*"),
+		// "-insecure":        complete.PredictNothing,
+		// "-tls-server-name": complete.PredictNothing,
+		// "-tls-skip-verify": complete.PredictNothing,
+		"-c": complete.PredictAnything,
 	}
 }
 
@@ -84,20 +92,14 @@ const (
 func generalOptionsUsage(usageOpts usageOptsFlags) string {
 
 	helpText := `
-  -address=<addr>
-    The address of the Nomad server.
-    Overrides the NOMAD_ADDR environment variable if set.
-    Default = http://127.0.0.1:4646
-  -region=<region>
-    The region of the Nomad servers to forward commands to.
-    Overrides the NOMAD_REGION environment variable if set.
-    Defaults to the Agent's local region.
+  -kubecliconfig=<kubecliconfig>
+    The location if the cli config yaml file.
 `
 
 	namespaceText := `
   -namespace=<namespace>
     The target namespace for queries and actions bound to a namespace.
-    Overrides the NOMAD_NAMESPACE environment variable if set.
+    Overrides the VAULT_CLI_NAMESPACE environment variable if set.
     If set to '*', job and alloc subcommands query all namespaces authorized
     to user.
     Defaults to the "default" namespace.
@@ -108,34 +110,8 @@ func generalOptionsUsage(usageOpts usageOptsFlags) string {
 	// configurable
 	remainingText := `
   -no-color
-    Disables colored command output. Alternatively, NOMAD_CLI_NO_COLOR may be
+    Disables colored command output. Alternatively, VAULT_CLI_NO_COLOR may be
     set.
-  -ca-cert=<path>
-    Path to a PEM encoded CA cert file to use to verify the
-    Nomad server SSL certificate.  Overrides the NOMAD_CACERT
-    environment variable if set.
-  -ca-path=<path>
-    Path to a directory of PEM encoded CA cert files to verify
-    the Nomad server SSL certificate. If both -ca-cert and
-    -ca-path are specified, -ca-cert is used. Overrides the
-    NOMAD_CAPATH environment variable if set.
-  -client-cert=<path>
-    Path to a PEM encoded client certificate for TLS authentication
-    to the Nomad server. Must also specify -client-key. Overrides
-    the NOMAD_CLIENT_CERT environment variable if set.
-  -client-key=<path>
-    Path to an unencrypted PEM encoded private key matching the
-    client certificate from -client-cert. Overrides the
-    NOMAD_CLIENT_KEY environment variable if set.
-  -tls-server-name=<value>
-    The server name to use as the SNI host when connecting via
-    TLS. Overrides the NOMAD_TLS_SERVER_NAME environment variable if set.
-  -tls-skip-verify
-    Do not verify TLS certificate. This is highly not recommended. Verification
-    will also be skipped if NOMAD_SKIP_VERIFY is set.
-  -token
-    The SecretID of an ACL token to use to authenticate API requests with.
-    Overrides the NOMAD_TOKEN environment variable if set.
 `
 
 	if usageOpts&usageOptsNoNamespace == 0 {
