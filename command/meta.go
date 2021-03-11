@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/jkevlin/vault-cli/pkg/config"
+	"github.com/jkevlin/vault-cli/pkg/configservice"
 	"github.com/jkevlin/vault-cli/pkg/secretservice"
 	"github.com/mitchellh/cli"
 	"github.com/posener/complete"
@@ -14,20 +15,17 @@ import (
 // default FlagSet returned by Meta.FlagSet.
 type FlagSetFlags uint
 
-const (
-	FlagSetNone    FlagSetFlags = 0
-	FlagSetClient  FlagSetFlags = 1 << iota
-	FlagSetDefault              = FlagSetClient
-)
-
 // Meta contains the meta-options and functionality that nearly every
 // Nomad command inherits.
 type Meta struct {
 	Ui cli.Ui
 
-	Config *config.Config
+	Config        *config.Config
+	ConfigService configservice.ConfigService
 
-	SecretService *secretservice.SecretService
+	SecretService secretservice.SecretService
+
+	ConfigPath string
 
 	// // These are set by the command line flags.
 	// context is the context name to use for this command
@@ -36,23 +34,24 @@ type Meta struct {
 	noColor bool
 
 	// namespace to send API requests
-	namespace string
+	namespace    string
+	name         string
+	outputFormat string
 }
 
 // FlagSet returns a FlagSet with the common flags that every
 // command implements. The exact behavior of FlagSet can be configured
 // using the flags as the second parameter, for example to disable
 // server settings on the commands that don't talk to a server.
-func (m *Meta) FlagSet(n string, fs FlagSetFlags) *flag.FlagSet {
+func (m *Meta) FlagSet(n string) *flag.FlagSet {
 	f := flag.NewFlagSet(n, flag.ContinueOnError)
 
-	// FlagSetClient is used to enable the settings for specifying
-	// client connectivity options.
-	if fs&FlagSetClient != 0 {
-		f.StringVar(&m.namespace, "namespace", "", "")
-		f.StringVar(&m.context, "context", "", "")
-
-	}
+	f.StringVar(&m.context, "c", "local", "")
+	f.StringVar(&m.context, "context", "local", "")
+	f.StringVar(&m.namespace, "n", "", "")
+	f.StringVar(&m.namespace, "namespace", "", "")
+	f.StringVar(&m.outputFormat, "o", "", "")
+	f.StringVar(&m.outputFormat, "output", "", "")
 
 	f.SetOutput(&uiErrorWriter{ui: m.Ui})
 
@@ -60,65 +59,41 @@ func (m *Meta) FlagSet(n string, fs FlagSetFlags) *flag.FlagSet {
 }
 
 // AutocompleteFlags returns a set of flag completions for the given flag set.
-func (m *Meta) AutocompleteFlags(fs FlagSetFlags) complete.Flags {
-	if fs&FlagSetClient == 0 {
-		return nil
-	}
-
+func (m *Meta) AutocompleteFlags() complete.Flags {
 	return complete.Flags{
+		"-c":             complete.PredictAnything,
+		"-context":       complete.PredictAnything,
 		"-kubecliconfig": complete.PredictAnything,
+		"-n":             complete.PredictAnything,
 		"-namespace":     complete.PredictAnything,
-		//"-namespace":       NamespacePredictor(m.Client, nil),
-		"-no-color": complete.PredictNothing,
-		// "-ca-cert":         complete.PredictFiles("*"),
-		// "-ca-path":         complete.PredictDirs("*"),
-		// "-client-cert":     complete.PredictFiles("*"),
-		// "-client-key":      complete.PredictFiles("*"),
-		// "-insecure":        complete.PredictNothing,
-		// "-tls-server-name": complete.PredictNothing,
-		// "-tls-skip-verify": complete.PredictNothing,
-		"-c": complete.PredictAnything,
+		"-no-color":      complete.PredictNothing,
 	}
 }
 
-type usageOptsFlags uint8
-
-const (
-	usageOptsDefault     usageOptsFlags = 0
-	usageOptsNoNamespace                = 1 << iota
-)
-
 // generalOptionsUsage returns the help string for the global options.
-func generalOptionsUsage(usageOpts usageOptsFlags) string {
+func generalOptionsUsage() string {
 
 	helpText := `
+  -context=<contextname>
+    The name of the context to use for this run of the command
+    Alias: -c
   -kubecliconfig=<kubecliconfig>
     The location if the cli config yaml file.
-`
 
-	namespaceText := `
   -namespace=<namespace>
     The target namespace for queries and actions bound to a namespace.
     Overrides the VAULT_CLI_NAMESPACE environment variable if set.
     If set to '*', job and alloc subcommands query all namespaces authorized
     to user.
     Defaults to the "default" namespace.
-`
 
-	// note: that although very few commands use color explicitly, all of them
-	// return red-colored text on error so we don't want to make this
-	// configurable
-	remainingText := `
   -no-color
     Disables colored command output. Alternatively, VAULT_CLI_NO_COLOR may be
     set.
+
+  -output=<json|yaml|text>
+    Alias: -o
 `
-
-	if usageOpts&usageOptsNoNamespace == 0 {
-		helpText = helpText + namespaceText
-	}
-
-	helpText = helpText + remainingText
 	return strings.TrimSpace(helpText)
 }
 

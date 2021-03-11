@@ -30,6 +30,11 @@ func (vs *vaultservice) SetClient(c *api.Client) {
 	vs.Client = c
 }
 
+// SetClient should return a pointer to a vaultservice client
+func (vs *vaultservice) GetClient() *api.Client {
+	return vs.Client
+}
+
 // Delete is to satisfy a lint error for this interface
 func (vs *vaultservice) Delete(path string) (*api.Secret, error) {
 	return vs.Client.Logical().Delete(path)

@@ -24,6 +24,7 @@ type Session struct {
 // ContextSpec consist of a user paired with a cluster, namespace
 type ContextSpec struct {
 	Cluster   string `mapstructure:"cluster" json:"cluster" yaml:"cluster"`
+	Inventory string `mapstructure:"inventory" json:"inventory" yaml:"inventory"`
 	Namespace string `mapstructure:"namespace" json:"namespace" yaml:"namespace"`
 	Session   `mapstructure:"session,omitempty" json:"session,omitempty" yaml:"session,omitempty"`
 	User      string `mapstructure:"user" json:"user" yaml:"user"`

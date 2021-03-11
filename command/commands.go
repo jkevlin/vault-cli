@@ -19,7 +19,7 @@ type NamedCommand interface {
 
 // Commands returns the mapping of CLI commands for Nomad. The meta
 // parameter lets you set meta options for all commands.
-func Commands(metaPtr *Meta, agentUi cli.Ui) map[string]cli.CommandFactory {
+func Commands(metaPtr *Meta, agentUI cli.Ui) map[string]cli.CommandFactory {
 	if metaPtr == nil {
 		metaPtr = new(Meta)
 	}
@@ -51,7 +51,7 @@ func Commands(metaPtr *Meta, agentUi cli.Ui) map[string]cli.CommandFactory {
 		},
 	}
 
-	for k, v := range EntCommands(metaPtr, agentUi) {
+	for k, v := range EntCommands(metaPtr, agentUI) {
 		all[k] = v
 	}
 

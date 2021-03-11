@@ -11,10 +11,10 @@ import (
 
 	"github.com/jkevlin/vault-cli/command"
 	"github.com/jkevlin/vault-cli/pkg/configservice/configfile"
+	"github.com/jkevlin/vault-cli/pkg/secretservice/vault"
 	"github.com/jkevlin/vault-cli/version"
 	"github.com/mattn/go-colorable"
 	"github.com/mitchellh/cli"
-	"github.com/mitchellh/go-homedir"
 	"github.com/sean-/seed"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -25,32 +25,19 @@ var (
 	// subcommands from the main help, which should be filtered out of the
 	// commands above.
 	hidden = []string{
-		"check",
-		"client-config",
-		"debug",
+		"foo",
 	}
 
 	// aliases is the list of aliases we want users to be aware of. We hide
 	// these form the help output but autocomplete them.
 	aliases = []string{
-		"fs",
-		"init",
-		"inspect",
-		"logs",
-		"plan",
-		"validate",
+		"bar",
 	}
 
 	// Common commands are grouped separately to call them out to operators.
 	commonCommands = []string{
 		"put",
 	}
-)
-
-const (
-	envVaultCLIConfigDir  = "VAULTCLICONFIG"
-	configDefaultDir      = ".vaultcli"
-	configDefaultFileName = "config.yaml"
 )
 
 func init() {
@@ -103,45 +90,12 @@ func RunCustom(args []string) int {
 	}
 
 	// Inject config storage object.
-	cfgservice := configfile.NewConfigFileService()
-	var path string
-	if path = os.Getenv(envVaultCLIConfigDir); path == "" {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		configPath := home + "/" + configDefaultDir
-		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			err = os.Mkdir(configPath, 0755)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		}
-		path = configPath + "/" + configDefaultFileName
-	}
-	cfg, err := cfgservice.Read(path)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting config: %s\n", err.Error())
-		return 1
-	}
-	metaPtr.Config = cfg
+	metaPtr.ConfigService = configfile.NewConfigFileService()
 
 	// Inject vault secret service object into meta and get a session
+	secretsvc := vault.NewVaultService()
 
-	secretsvc, err := cfg.GetServiceFromContext(path, "local", "nextgen")
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting service from config: %s\n", err.Error())
-		return 1
-	}
-	_, err = cfg.GetSession(secretsvc, path, "local", true)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting session: %s\n", err.Error())
-		return 1
-	}
-	metaPtr.SecretService = &secretsvc
+	metaPtr.SecretService = secretsvc
 
 	commands := command.Commands(metaPtr, agentUi)
 	cli := &cli.CLI{

@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/hashicorp/vault/api v1.0.4
+	github.com/jkevlin/vault-go v0.0.0-20210303225017-9c978558f86d
 	github.com/mattn/go-colorable v0.0.9
 	github.com/mitchellh/cli v1.1.2
 	github.com/mitchellh/go-homedir v1.1.0

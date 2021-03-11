@@ -60,6 +60,16 @@ type FakeSecretService struct {
 		result1 *api.Secret
 		result2 error
 	}
+	GetClientStub        func() *api.Client
+	getClientMutex       sync.RWMutex
+	getClientArgsForCall []struct {
+	}
+	getClientReturns struct {
+		result1 *api.Client
+	}
+	getClientReturnsOnCall map[int]struct {
+		result1 *api.Client
+	}
 	IsKVv2Stub        func(string) (string, bool, error)
 	isKVv2Mutex       sync.RWMutex
 	isKVv2ArgsForCall []struct {
@@ -356,6 +366,58 @@ func (fake *FakeSecretService) DeleteReturnsOnCall(i int, result1 *api.Secret, r
 		result1 *api.Secret
 		result2 error
 	}{result1, result2}
+}
+
+func (fake *FakeSecretService) GetClient() *api.Client {
+	fake.getClientMutex.Lock()
+	ret, specificReturn := fake.getClientReturnsOnCall[len(fake.getClientArgsForCall)]
+	fake.getClientArgsForCall = append(fake.getClientArgsForCall, struct {
+	}{})
+	fake.recordInvocation("GetClient", []interface{}{})
+	fake.getClientMutex.Unlock()
+	if fake.GetClientStub != nil {
+		return fake.GetClientStub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.getClientReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeSecretService) GetClientCallCount() int {
+	fake.getClientMutex.RLock()
+	defer fake.getClientMutex.RUnlock()
+	return len(fake.getClientArgsForCall)
+}
+
+func (fake *FakeSecretService) GetClientCalls(stub func() *api.Client) {
+	fake.getClientMutex.Lock()
+	defer fake.getClientMutex.Unlock()
+	fake.GetClientStub = stub
+}
+
+func (fake *FakeSecretService) GetClientReturns(result1 *api.Client) {
+	fake.getClientMutex.Lock()
+	defer fake.getClientMutex.Unlock()
+	fake.GetClientStub = nil
+	fake.getClientReturns = struct {
+		result1 *api.Client
+	}{result1}
+}
+
+func (fake *FakeSecretService) GetClientReturnsOnCall(i int, result1 *api.Client) {
+	fake.getClientMutex.Lock()
+	defer fake.getClientMutex.Unlock()
+	fake.GetClientStub = nil
+	if fake.getClientReturnsOnCall == nil {
+		fake.getClientReturnsOnCall = make(map[int]struct {
+			result1 *api.Client
+		})
+	}
+	fake.getClientReturnsOnCall[i] = struct {
+		result1 *api.Client
+	}{result1}
 }
 
 func (fake *FakeSecretService) IsKVv2(arg1 string) (string, bool, error) {
@@ -787,6 +849,8 @@ func (fake *FakeSecretService) Invocations() map[string][][]interface{} {
 	defer fake.certLoginMutex.RUnlock()
 	fake.deleteMutex.RLock()
 	defer fake.deleteMutex.RUnlock()
+	fake.getClientMutex.RLock()
+	defer fake.getClientMutex.RUnlock()
 	fake.isKVv2Mutex.RLock()
 	defer fake.isKVv2Mutex.RUnlock()
 	fake.listMutex.RLock()

@@ -1,9 +1,21 @@
 package command
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
+	"github.com/jkevlin/vault-cli/pkg/inventory"
+	vaultapi "github.com/jkevlin/vault-go/api/v1"
+	"github.com/mitchellh/go-homedir"
 	"github.com/posener/complete"
+	"gopkg.in/yaml.v2"
+)
+
+const (
+	envVaultCLIConfigDir  = "VAULTCLICONFIG"
+	configDefaultDir      = ".vaultcli"
+	configDefaultFileName = "config.yaml"
 )
 
 type PutVaultNamespaceCommand struct {
@@ -13,15 +25,15 @@ type PutVaultNamespaceCommand struct {
 func (c *PutVaultNamespaceCommand) Help() string {
 	helpText := `
 Usage: vault-cli put vaultnamespace [options]
-  Bootstrap is used to bootstrap the ACL system and get an initial token.
+
 General Options:
-  ` + generalOptionsUsage(usageOptsDefault|usageOptsNoNamespace) + `
+  ` + generalOptionsUsage() + `
 `
 	return strings.TrimSpace(helpText)
 }
 
 func (c *PutVaultNamespaceCommand) AutocompleteFlags() complete.Flags {
-	return mergeAutocompleteFlags(c.Meta.AutocompleteFlags(FlagSetClient),
+	return mergeAutocompleteFlags(c.Meta.AutocompleteFlags(),
 		complete.Flags{})
 }
 
@@ -36,10 +48,93 @@ func (c *PutVaultNamespaceCommand) Synopsis() string {
 func (c *PutVaultNamespaceCommand) Name() string { return "acl bootstrap" }
 
 func (c *PutVaultNamespaceCommand) Run(args []string) int {
-	var currentContext string
+	var (
+		dirname string
+	)
 
-	flags := c.Meta.FlagSet(c.Name(), FlagSetClient)
-	flags.Usage = func() { c.Ui.Output(c.Help()) }
-	flags.StringVar(&currentContext, "name", "", "")
+	flagSet := c.Meta.FlagSet(c.Name())
+	flagSet.Usage = func() { c.Ui.Output(c.Help()) }
+	flagSet.StringVar(&dirname, "f", "hack/sample/vaultnamespace", "")
+	if err := flagSet.Parse(args); err != nil {
+		return 1
+	}
+	args = flagSet.Args()
+	vaultnamespacefilespec := args[0]
+
+	var path string
+	if path = os.Getenv(envVaultCLIConfigDir); path == "" {
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		configPath := home + "/" + configDefaultDir
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			err = os.Mkdir(configPath, 0755)
+			if err != nil {
+				fmt.Println(err)
+				os.Exit(1)
+			}
+		}
+		path = configPath + "/" + configDefaultFileName
+		c.ConfigPath = path
+	}
+	cfg, err := c.ConfigService.Read(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting config: %s\n", err.Error())
+		return 1
+	}
+	c.Config = cfg
+
+	secretsvc, err := c.Config.GetServiceFromContext(c.ConfigPath, "local", "nextgen")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error getting service from config: %s\n", err.Error())
+		return 1
+	}
+	c.SecretService = secretsvc
+
+	files, err := inventory.GetFiles(dirname, vaultnamespacefilespec)
+	if err != nil {
+		fmt.Printf("get files error: %s\n", err.Error())
+		return 1
+	}
+	if len(files) == 0 {
+		fmt.Printf("Vault Namespace (%s) not found in inventory", vaultnamespacefilespec)
+		return 1
+	}
+
+	for _, f := range files {
+		filename := dirname + "/" + f
+		data, err := inventory.ReadFile(filename + ".yaml")
+		if err != nil {
+			fmt.Println("error reading file: ", err.Error())
+			return 1
+		}
+		vaultNamespace := vaultapi.VaultNamespace{}
+		err = yaml.Unmarshal(data, &vaultNamespace)
+		if err != nil {
+			fmt.Printf("unable to marshal vaultnamespace: %s\n", err.Error())
+			return 1
+		}
+
+		if vaultNamespace.Spec.NamespaceBase != "" {
+			c.SecretService.GetClient().SetNamespace(vaultNamespace.Spec.NamespaceBase)
+		}
+
+		secret, err := c.SecretService.Read(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName))
+		if err == nil && secret != nil {
+			fmt.Printf("Vault Namespace: %s.yaml exists\n", f)
+			return 0
+		}
+		m := make(map[string]interface{})
+		_, err = c.SecretService.Write(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName), m)
+		if err != nil {
+			fmt.Printf("Vault Namespace: %s.yaml %s\n", f, err)
+			return 1
+		}
+		fmt.Printf("Vault Namespace: %s.yaml write, OK\n", f)
+	}
+
 	return 0
 }
