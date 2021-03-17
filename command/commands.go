@@ -9,7 +9,7 @@ import (
 
 const (
 	// EnvNomadCLINoColor is an env var that toggles colored UI output.
-	EnvNomadCLINoColor = `NOMAD_CLI_NO_COLOR`
+	EnvVaultCLINoColor = `VAULT_CLI_NO_COLOR`
 )
 
 // NamedCommand is a interface to denote a commmand's name.

@@ -1,7 +1,7 @@
 apiVersion: api.gensec.ibm.com/v1
 kind: VaultEndpoint
 metadata:
-  name: local-ng-pki
+  name: local-root-pki
 spec:
   vaultNamespace: root
   path: pki

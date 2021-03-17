@@ -7,15 +7,8 @@ import (
 
 	"github.com/jkevlin/vault-cli/pkg/inventory"
 	vaultapi "github.com/jkevlin/vault-go/api/v1"
-	"github.com/mitchellh/go-homedir"
 	"github.com/posener/complete"
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	envVaultCLIConfigDir  = "VAULTCLICONFIG"
-	configDefaultDir      = ".vaultcli"
-	configDefaultFileName = "config.yaml"
 )
 
 type PutVaultNamespaceCommand struct {
@@ -52,42 +45,33 @@ func (c *PutVaultNamespaceCommand) Run(args []string) int {
 		dirname string
 	)
 
+	// get the flags specific to this command
+
 	flagSet := c.Meta.FlagSet(c.Name())
 	flagSet.Usage = func() { c.Ui.Output(c.Help()) }
 	flagSet.StringVar(&dirname, "f", "hack/sample/vaultnamespace", "")
 	if err := flagSet.Parse(args); err != nil {
 		return 1
 	}
+
+	// process args
 	args = flagSet.Args()
 	vaultnamespacefilespec := args[0]
 
-	var path string
-	if path = os.Getenv(envVaultCLIConfigDir); path == "" {
-		// Find home directory.
-		home, err := homedir.Dir()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		configPath := home + "/" + configDefaultDir
-		if _, err := os.Stat(configPath); os.IsNotExist(err) {
-			err = os.Mkdir(configPath, 0755)
-			if err != nil {
-				fmt.Println(err)
-				os.Exit(1)
-			}
-		}
-		path = configPath + "/" + configDefaultFileName
-		c.ConfigPath = path
-	}
-	cfg, err := c.ConfigService.Read(path)
+	// load config
+	configPath, err := getConfigPath()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting config: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Error getting config path: %s\n", err.Error())
+		return 1
+	}
+	cfg, err := c.ConfigService.Read(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading config: %s\n", err.Error())
 		return 1
 	}
 	c.Config = cfg
 
-	secretsvc, err := c.Config.GetServiceFromContext(c.ConfigPath, "local", "nextgen")
+	secretsvc, err := c.Config.GetServiceFromContext(c.ConfigPath, c.Meta.context, c.Meta.namespace)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error getting service from config: %s\n", err.Error())
 		return 1
@@ -125,7 +109,7 @@ func (c *PutVaultNamespaceCommand) Run(args []string) int {
 		secret, err := c.SecretService.Read(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName))
 		if err == nil && secret != nil {
 			fmt.Printf("Vault Namespace: %s.yaml exists\n", f)
-			return 0
+			continue
 		}
 		m := make(map[string]interface{})
 		_, err = c.SecretService.Write(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName), m)

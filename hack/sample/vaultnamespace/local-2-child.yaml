@@ -1,7 +1,7 @@
 apiVersion: api.gensec.ibm.com/v1
 kind: VaultNamespace
 metadata:
-  name: local-1-nextgen
+  name: local-2-child
 spec:
   namespaceBase: root
-  namespaceName: nextgen
+  namespaceName: child

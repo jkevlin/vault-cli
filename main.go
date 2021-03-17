@@ -61,7 +61,7 @@ func RunCustom(args []string) int {
 
 	// Don't use color if disabled
 	color := true
-	if os.Getenv(command.EnvNomadCLINoColor) != "" {
+	if os.Getenv(command.EnvVaultCLINoColor) != "" {
 		color = false
 	}
 
@@ -72,7 +72,7 @@ func RunCustom(args []string) int {
 		ErrorWriter: colorable.NewColorableStderr(),
 	}
 
-	// The Nomad agent never outputs color
+	// The Vault agent never outputs color
 	agentUi := &cli.BasicUi{
 		Reader:      os.Stdin,
 		Writer:      os.Stdout,
@@ -126,7 +126,7 @@ func groupedHelpFunc(f cli.HelpFunc) cli.HelpFunc {
 		var b bytes.Buffer
 		tw := tabwriter.NewWriter(&b, 0, 2, 6, ' ', 0)
 
-		fmt.Fprintf(tw, "Usage: vaultcli [-version] [-help] [-autocomplete-(un)install] <command> [args]\n\n")
+		fmt.Fprintf(tw, "Usage: vault-cli [-version] [-help] [-autocomplete-(un)install] <command> [args]\n\n")
 		fmt.Fprintf(tw, "Common commands:\n")
 		for _, v := range commonCommands {
 			printCommand(tw, v, commands[v])
@@ -190,7 +190,7 @@ func setupEnv(args []string) []string {
 
 	// Put back into the env for later
 	if noColor {
-		os.Setenv(command.EnvNomadCLINoColor, "true")
+		os.Setenv(command.EnvVaultCLINoColor, "true")
 	}
 
 	return args

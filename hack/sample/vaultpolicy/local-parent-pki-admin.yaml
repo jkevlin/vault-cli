@@ -2,10 +2,10 @@
 apiVersion: api.gensec.ibm.com/v1
 kind: VaultPolicy
 metadata: 
-  name: local-ng-pki-admin
+  name: local-parent-pki-admin
 spec: 
   policyName: pki-admin
-  vaultNamespace: nextgen
+  vaultNamespace: parent
   policies: 
     paths: 
       - capabilities: 

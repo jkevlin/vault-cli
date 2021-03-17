@@ -3,9 +3,17 @@ package command
 import (
 	"bufio"
 	"bytes"
+	"os"
 
 	"github.com/mitchellh/cli"
+	"github.com/mitchellh/go-homedir"
 	"github.com/posener/complete"
+)
+
+const (
+	envVaultCLIConfigDir  = "VAULTCLICONFIG"
+	configDefaultDir      = ".vaultcli"
+	configDefaultFileName = "config.yaml"
 )
 
 // mergeAutocompleteFlags is used to join multiple flag completion sets.
@@ -58,4 +66,24 @@ func (w *uiErrorWriter) Close() error {
 		w.buf.Reset()
 	}
 	return nil
+}
+
+func getConfigPath() (string, error) {
+	var path string
+	if path = os.Getenv(envVaultCLIConfigDir); path == "" {
+		// Find home directory.
+		home, err := homedir.Dir()
+		if err != nil {
+			return "", err
+		}
+		configPath := home + "/" + configDefaultDir
+		if _, err := os.Stat(configPath); os.IsNotExist(err) {
+			err = os.Mkdir(configPath, 0755)
+			if err != nil {
+				return "", err
+			}
+		}
+		path = configPath + "/" + configDefaultFileName
+	}
+	return path, nil
 }
