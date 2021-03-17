@@ -1,5 +1,11 @@
 # vault-cli
 
+vault-cli is a vault automation tool, used to configure a vault server
+with all of the namespaces, endpoints, policies, roles auth endpoins, etc.
+
+vault-cli stores its state in convienent yaml format.  This allows a company to
+maintain configuration control over the contents of a vault server.
+
 ## Try it out
 
 In first terminal window
