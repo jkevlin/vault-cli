@@ -8,6 +8,10 @@ maintain configuration control over the contents of a vault server.
 
 ## Try it out
 
+This example uses namespaces. You will need to download Vault Enterprise
+
+[Download](https://releases.hashicorp.com/vault/1.6.3+ent/)
+
 In first terminal window
 
 ```bash
