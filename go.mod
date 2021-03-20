@@ -4,11 +4,13 @@ go 1.15
 
 require (
 	github.com/hashicorp/vault/api v1.0.4
-	github.com/jkevlin/vault-go v0.0.0-20210303225017-9c978558f86d
+	github.com/jkevlin/vault-go v0.0.0-20210320144305-a32d945b5792
+	github.com/json-iterator/go v1.1.8
 	github.com/mattn/go-colorable v0.0.9
 	github.com/mitchellh/cli v1.1.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/posener/complete v1.1.1
+	github.com/rodaine/hclencoder v0.0.0-20200910194838-aaa140ee61ed
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	gopkg.in/yaml.v2 v2.3.0

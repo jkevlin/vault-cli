@@ -26,5 +26,11 @@ In second terminal
 cd vault-cli
 go mod vendor
 go build
-./vault-cli put vaultnamespace -c=local -namespace=root "local-*"
+./vault-cli put vaultnamespace -c=local "local-*"
+./vault-cli put vaultauth -c=local "local-*"
+./vault-cli put vaultpolicy -c=local "local-*"
+
+vault namespace list -namespace=root
+vault auth list -namespace=parent
+vault auth list -namespace=parent
 ```

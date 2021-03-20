@@ -12,7 +12,7 @@ import (
 )
 
 type PutVaultNamespaceCommand struct {
-	Meta
+	Meta Meta
 }
 
 func (c *PutVaultNamespaceCommand) Help() string {
@@ -41,15 +41,11 @@ func (c *PutVaultNamespaceCommand) Synopsis() string {
 func (c *PutVaultNamespaceCommand) Name() string { return "acl bootstrap" }
 
 func (c *PutVaultNamespaceCommand) Run(args []string) int {
-	var (
-		dirname string
-	)
 
 	// get the flags specific to this command
 
 	flagSet := c.Meta.FlagSet(c.Name())
-	flagSet.Usage = func() { c.Ui.Output(c.Help()) }
-	flagSet.StringVar(&dirname, "f", "hack/sample/vaultnamespace", "")
+	flagSet.Usage = func() { c.Meta.Ui.Output(c.Help()) }
 	if err := flagSet.Parse(args); err != nil {
 		return 1
 	}
@@ -59,26 +55,13 @@ func (c *PutVaultNamespaceCommand) Run(args []string) int {
 	vaultnamespacefilespec := args[0]
 
 	// load config
-	configPath, err := getConfigPath()
+	err := c.Meta.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting config path: %s\n", err.Error())
+		fmt.Fprintf(os.Stderr, "Meta Load error: %s\n", err.Error())
 		return 1
 	}
-	cfg, err := c.ConfigService.Read(configPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error reading config: %s\n", err.Error())
-		return 1
-	}
-	c.Config = cfg
 
-	secretsvc, err := c.Config.GetServiceFromContext(c.ConfigPath, c.Meta.context, c.Meta.namespace)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error getting service from config: %s\n", err.Error())
-		return 1
-	}
-	c.SecretService = secretsvc
-
-	files, err := inventory.GetFiles(dirname, vaultnamespacefilespec)
+	files, err := inventory.GetFiles(c.Meta.CurrentContext.InventoryPath+"/vaultnamespace/", vaultnamespacefilespec)
 	if err != nil {
 		fmt.Printf("get files error: %s\n", err.Error())
 		return 1
@@ -89,7 +72,7 @@ func (c *PutVaultNamespaceCommand) Run(args []string) int {
 	}
 
 	for _, f := range files {
-		filename := dirname + "/" + f
+		filename := c.Meta.CurrentContext.InventoryPath + "/vaultnamespace/" + f
 		data, err := inventory.ReadFile(filename + ".yaml")
 		if err != nil {
 			fmt.Println("error reading file: ", err.Error())
@@ -103,21 +86,21 @@ func (c *PutVaultNamespaceCommand) Run(args []string) int {
 		}
 
 		if vaultNamespace.Spec.NamespaceBase != "" {
-			c.SecretService.GetClient().SetNamespace(vaultNamespace.Spec.NamespaceBase)
+			c.Meta.SecretService.GetClient().SetNamespace(vaultNamespace.Spec.NamespaceBase)
 		}
 
-		secret, err := c.SecretService.Read(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName))
+		secret, err := c.Meta.SecretService.Read(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName))
 		if err == nil && secret != nil {
-			fmt.Printf("Vault Namespace: %s.yaml exists\n", f)
+			fmt.Printf("Vault Namespace: (%s.yaml) %s exists\n", f, vaultNamespace.Spec.NamespaceName)
 			continue
 		}
 		m := make(map[string]interface{})
-		_, err = c.SecretService.Write(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName), m)
+		_, err = c.Meta.SecretService.Write(fmt.Sprintf("/sys/namespaces/%s", vaultNamespace.Spec.NamespaceName), m)
 		if err != nil {
-			fmt.Printf("Vault Namespace: %s.yaml %s\n", f, err)
+			fmt.Printf("Vault Namespace: (%s.yaml) %s %s\n", f, vaultNamespace.Spec.NamespaceName, err)
 			return 1
 		}
-		fmt.Printf("Vault Namespace: %s.yaml write, OK\n", f)
+		fmt.Printf("Vault Namespace: (%s.yaml) %s write, OK\n", f, vaultNamespace.Spec.NamespaceName)
 	}
 
 	return 0

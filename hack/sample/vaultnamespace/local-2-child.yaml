@@ -3,5 +3,5 @@ kind: VaultNamespace
 metadata:
   name: local-2-child
 spec:
-  namespaceBase: root
+  namespaceBase: parent
   namespaceName: child

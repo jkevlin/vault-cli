@@ -44,7 +44,7 @@ contexts:
 - name: local
   context:
     cluster: local
-    inventory: "hack/sample/vaultnamespace"
+    inventoryPath: "hack/sample"
     namespace: nextgen
     session:
       token: root

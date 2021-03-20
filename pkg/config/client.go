@@ -65,13 +65,7 @@ func (cfg *Config) GetClientFromContext(secretsvc secretservice.SecretService, c
 }
 
 // GetServiceFromContext gets user/cluster/namespace info from context
-func (cfg *Config) GetServiceFromContext(configfile, contextName, namespace string) (secretservice.SecretService, error) {
-	ctx := cfg.GetContextByName(contextName)
-
-	if ctx == nil {
-		return nil, errors.New("could not find named context")
-	}
-
+func (cfg *Config) GetServiceFromContext(ctx *Context, configfile, namespace string) (secretservice.SecretService, error) {
 	cluster := cfg.GetClusterByName(ctx.Cluster)
 	user := cfg.GetUserByName(ctx.User)
 	// if cluster == nil || cluster.Server == "" || cluster.CertAuth == "" {
@@ -81,7 +75,7 @@ func (cfg *Config) GetServiceFromContext(configfile, contextName, namespace stri
 	// 	return nil, errors.New("user must have cert and key")
 	// }
 	secretsvc := vault.NewVaultService()
-	session, err := cfg.GetSession(secretsvc, configfile, contextName, false)
+	session, err := cfg.GetSession(secretsvc, configfile, ctx.Name, false)
 	if err != nil {
 		return nil, err
 	}

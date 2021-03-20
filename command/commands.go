@@ -44,8 +44,18 @@ func Commands(metaPtr *Meta, agentUI cli.Ui) map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"put vaultauth": func() (cli.Command, error) {
+			return &PutVaultAuthCommand{
+				Meta: meta,
+			}, nil
+		},
 		"put vaultnamespace": func() (cli.Command, error) {
 			return &PutVaultNamespaceCommand{
+				Meta: meta,
+			}, nil
+		},
+		"put vaultpolicy": func() (cli.Command, error) {
+			return &PutVaultPolicyCommand{
 				Meta: meta,
 			}, nil
 		},
