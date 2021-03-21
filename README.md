@@ -27,7 +27,7 @@ cd vault-cli
 go mod vendor
 go build
 ```
-The sample files for these examples are located here: [samples](tree/main/hack/sample)
+The sample files for these examples are located here: [samples](hack/sample)
 
 ```bash
 ./vault-cli put vaultnamespace -c=local "local-*"
