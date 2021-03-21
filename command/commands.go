@@ -44,6 +44,11 @@ func Commands(metaPtr *Meta, agentUI cli.Ui) map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"put jwtrole": func() (cli.Command, error) {
+			return &PutJWTRoleCommand{
+				Meta: meta,
+			}, nil
+		},
 		"put vaultauth": func() (cli.Command, error) {
 			return &PutVaultAuthCommand{
 				Meta: meta,

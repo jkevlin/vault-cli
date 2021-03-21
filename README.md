@@ -29,8 +29,11 @@ go build
 ./vault-cli put vaultnamespace -c=local "local-*"
 ./vault-cli put vaultauth -c=local "local-*"
 ./vault-cli put vaultpolicy -c=local "local-*"
+./vault-cli put jjwtrole -c=local "local-*"
 
 vault namespace list -namespace=root
+vault namespace list -namespace=parent
 vault auth list -namespace=parent
-vault auth list -namespace=parent
+vault policy read -namespace=parent pki-admin
+vault read -namespace=parent /auth/jwt/role/operator
 ```
