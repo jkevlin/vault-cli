@@ -135,6 +135,7 @@ func (c *PutVaultEndpointCommand) Run(args []string) int {
 					fmt.Printf("(%s) %s", f, err)
 					return 1
 				}
+				fmt.Printf("SSH Endpoint configured (%s) write OK\n", f)
 			}
 		}
 
