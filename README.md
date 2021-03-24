@@ -32,8 +32,11 @@ The sample files for these examples are located here: [samples](hack/sample)
 ```bash
 ./vault-cli put vaultnamespace -c=local "local-*"
 ./vault-cli put vaultauth -c=local "local-*"
+./vault-cli put vaultendpoint -c=local "local-*"
 ./vault-cli put vaultpolicy -c=local "local-*"
-./vault-cli put jjwtrole -c=local "local-*"
+./vault-cli put jwtrole -c=local "local-*"
+./vault-cli put pkirole -c=local "local-*"
+
 
 vault namespace list -namespace=root
 vault namespace list -namespace=parent

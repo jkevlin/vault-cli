@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	github.com/hashicorp/vault/api v1.0.4
-	github.com/jkevlin/vault-go v0.0.0-20210320144305-a32d945b5792
+	github.com/jkevlin/vault-go v0.0.0-20210323234418-cf5eea47ea75
 	github.com/json-iterator/go v1.1.8
 	github.com/mattn/go-colorable v0.0.9
 	github.com/mitchellh/cli v1.1.2
@@ -15,3 +15,5 @@ require (
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
 	gopkg.in/yaml.v2 v2.3.0
 )
+
+replace github.com/jkevlin/vault-go => /Users/jkevlin/go/src/github.com/jkevlin/vault-go
