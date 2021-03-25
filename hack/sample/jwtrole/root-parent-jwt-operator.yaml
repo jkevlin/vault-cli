@@ -1,7 +1,7 @@
 apiVersion: api.gensec.ibm.com/v1
 kind: JWTRole
 metadata:
-  name: root-operator-role
+  name: root-parent-jwt-operator
 spec:
   authPath: jwt
   vaultNamespace: parent

@@ -79,6 +79,11 @@ func Commands(metaPtr *Meta, agentUI cli.Ui) map[string]cli.CommandFactory {
 				Meta: meta,
 			}, nil
 		},
+		"put vaultrole": func() (cli.Command, error) {
+			return &PutVaultRoleCommand{
+				Meta: meta,
+			}, nil
+		},
 	}
 
 	for k, v := range EntCommands(metaPtr, agentUI) {

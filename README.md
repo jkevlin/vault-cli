@@ -34,6 +34,7 @@ The sample files for these examples are located here: [samples](hack/sample)
 ./vault-cli put vaultauth -c=local "local-*"
 ./vault-cli put vaultendpoint -c=local "local-*"
 ./vault-cli put vaultpolicy -c=local "local-*"
+./vault-cli put vaulteole -c=local "local-*"
 ./vault-cli put jwtrole -c=local "local-*"
 ./vault-cli put pkirole -c=local "local-*"
 ./vault-cli put sshrole -c=local "local-*"
@@ -45,5 +46,6 @@ vault auth list -namespace=parent
 vault policy read -namespace=parent pki-admin
 vault read -namespace=parent /auth/jwt/role/operator
 vault read -namespace=root /pki/roles/tls
-vault read -namespace=root /ssh/roles/operator    
+vault read -namespace=root /ssh/roles/operator
+vault read -namespace=parent /auth/myauth/role/operator
 ```
